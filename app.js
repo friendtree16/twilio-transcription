@@ -17,59 +17,73 @@ const Twilio = require('twilio');
 
 const { TwimlResponse } = Twilio;
 
+const sayOption = { language: 'ja-JP' };
+
 // [START gae_flex_twilio_receive_call]
 app.post('/call/receive', (req, res) => {
+
+  const resp = new Twilio.twiml.VoiceResponse();
 
   var recordingUrl = req.body.RecordingUrl;
   console.log(`RecordingUrl: ${recordingUrl}`);
   if (recordingUrl) {
-    transcription(recordingUrl);
+    downloadData(recordingUrl, async function (err, data) {
+      console.log(`Transcription: start`);
+      await transcription(data);
+      console.log(`Transcription: end`);
+      resp.say(sayOption, '続いてお話してください。');
+      resp.record({
+        timeout: 2
+      });
+
+      res
+        .status(200)
+        .contentType('text/xml')
+        .send(resp.toString());
+    });
+  } else {
+    resp.say(sayOption, '文字起こしを開始します。');
+    resp.record({
+      timeout: 2
+    });
+
+    res
+      .status(200)
+      .contentType('text/xml')
+      .send(resp.toString());
   }
-
-  const resp = new Twilio.twiml.VoiceResponse();
-  resp.record({
-    timeout: 2
-  });
-
-  res
-    .status(200)
-    .contentType('text/xml')
-    .send(resp.toString());
 });
 
 // transcription
-function transcription(url) {
-
-  console.log(`Transcription: start`);
+async function transcription(data) {
 
   // Creates a client
   const client = new speech.SpeechClient();
 
   // Reads a local audio file and converts it to base64
-  downloadData(url, async function (err, data) {
-    const audioBytes = data.toString('base64');
+  const audioBytes = data.toString('base64');
 
-    // The audio file's encoding, sample rate in hertz, and BCP-47 language code
-    const audio = {
-      content: audioBytes,
-    };
-    const config = {
-      encoding: 'LINEAR16',
-      sampleRateHertz: 8000,
-      languageCode: 'ja-JP',
-    };
-    const request = {
-      audio: audio,
-      config: config,
-    };
+  // The audio file's encoding, sample rate in hertz, and BCP-47 language code
+  const audio = {
+    content: audioBytes,
+  };
+  const config = {
+    encoding: 'LINEAR16',
+    sampleRateHertz: 8000,
+    languageCode: 'ja-JP',
+  };
+  const request = {
+    audio: audio,
+    config: config,
+  };
 
-    // Detects speech in the audio file
-    const [response] = await client.recognize(request);
-    const transcription = response.results
-      .map(result => result.alternatives[0].transcript)
-      .join('\n');
-    console.log(`Transcription: ${transcription}`);
-  });
+  // Detects speech in the audio file
+  const [response] = await client.recognize(request);
+  const transcription = response.results
+    .map(result => result.alternatives[0].transcript)
+    .join('\n');
+  console.log(`Transcription: ${transcription}`);
+  return transcription;
 }
 
 // 音声ファイルダウンロード
