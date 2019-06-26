@@ -9,7 +9,10 @@ app.use(bodyParser.urlencoded({ extended: false }));
 
 // Imports the Google Cloud client library
 const speech = require('@google-cloud/speech');
-const fs = require('fs');
+const Firestore = require('@google-cloud/firestore');
+const db = new Firestore();
+const admin = require('firebase-admin');
+
 const util = require('util');
 const https = require('https');
 
@@ -29,7 +32,8 @@ app.post('/call/receive', (req, res) => {
   if (recordingUrl) {
     downloadData(recordingUrl, async function (err, data) {
       console.log(`Transcription: start`);
-      await transcription(data);
+      var transcriptionText = await transcription(data);
+      writeText(req.body.From, req.body.CallSid, transcriptionText);
       console.log(`Transcription: end`);
       resp.say(sayOption, '続いてお話してください。');
       resp.record({
@@ -108,6 +112,38 @@ function downloadData(url, callback) {
   })
     // Inform the callback of the error.
     .on('error', callback);
+}
+
+// DB書込み
+async function writeText(phoneNumber, callSid, text) {
+  console.log('start write text');
+  var userRef = await db.collection('users').where('phoneNumber', '==', phoneNumber).get();
+
+  const textData = {
+    callSid: callSid,
+    text: text,
+    timestamp: admin.firestore.Timestamp.now()
+  }
+
+  if (!userRef.empty) {
+    console.log('userRef exist');
+    const userData = userRef.docs[0].data();
+    userData.texts.push(textData);
+    await db.collection('users').doc(userRef.docs[0].id).set(userData);
+  } else {
+    console.log('userRef not exist');
+
+    db.collection('users').add({
+      phoneNumber: phoneNumber,
+      texts: [
+        textData
+      ]
+    }).then(ref => {
+      console.log('Added document with ID: ', ref.id);
+    }).catch(function (error) {
+      console.error("Error writing document: ", error);
+    });;
+  }
 }
 
 
