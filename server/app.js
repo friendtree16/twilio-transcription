@@ -35,27 +35,20 @@ app.post('/call/receive', (req, res) => {
       var transcriptionText = await transcription(data);
       writeText(req.body.From, req.body.CallSid, transcriptionText);
       console.log(`Transcription: end`);
-      resp.say(sayOption, '続いてお話してください。');
-      resp.record({
-        timeout: 2
-      });
-
-      res
-        .status(200)
-        .contentType('text/xml')
-        .send(resp.toString());
     });
   } else {
     resp.say(sayOption, '文字起こしを開始します。');
-    resp.record({
-      timeout: 2
-    });
-
-    res
-      .status(200)
-      .contentType('text/xml')
-      .send(resp.toString());
   }
+  resp.record({
+    timeout: 2,
+  });
+
+  console.log(`return response`);
+  res
+    .status(200)
+    .contentType('text/xml')
+    .send(resp.toString());
+
 });
 
 // transcription
