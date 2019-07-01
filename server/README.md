@@ -1,6 +1,6 @@
-# Node.js Twilio voice and SMS sample for Google App Engine
+# Node.js Twilio voice transcription sample for Google App Engine
 
-This sample shows how to use [Twilio](https://www.twilio.com) on
+This sample shows how to use [Twilio](https://www.twilio.com)([in Japan](https://twilio.kddi-web.com/)) on
 [Google App Engine](https://cloud.google.com/appengine) Node.js [standard environment](https://cloud.google.com/appengine/docs/standard/nodejs)
 and [flexible environment](https://cloud.google.com/appengine/docs/flexible/nodejs)
 
@@ -11,16 +11,12 @@ For more information about Twilio, see the
 
 Before you can run or deploy the sample, you will need to do the following:
 
-1. [Create a Twilio Account](http://ahoy.twilio.com/googlecloudplatform). Google
+1. [Create a Twilio Account](http://ahoy.twilio.com/googlecloudplatform)([in Japan](https://jp.twilio.com/try-twilio/kddi-web)). Google
 App Engine customers receive a complimentary credit for SMS messages and inbound
 messages.
 
 1. Create a number on twilio, and configure the voice request URL to be
-`https://<your-project-id>.appspot.com/call/receive` and the SMS request URL to
-be `https://<your-project-id>.appspot.com/sms/receive`.
-
-1. Configure your Twilio settings in the environment variables section in
-`app.yaml`.
+`https://twilio-transcription-sample-dot-<your-project-id>.appspot.com/call/receive` .
 
 ## Running locally
 
@@ -30,7 +26,4 @@ running and deploying.
 You can run the application locally to test the callbacks and SMS sending. You
 will need to set environment variables before starting your application:
 
-    export TWILIO_ACCOUNT_SID=<your-twilio-account-sid>
-    export TWILIO_AUTH_TOKEN=<your-twilio-auth-token>
-    export TWILIO_NUMBER=<your-twilio-number>
     npm start
